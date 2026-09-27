@@ -821,17 +821,8 @@
       takvimGunSec(bugununTarihi());
     }
 
-    function mesaileriKaydet() {
-      if (selectedList.length === 0) {
-        alert("Kaydedilecek personel yok.");
-        return;
-      }
-
-      const btn = document.getElementById("btnKaydet");
-      const eskiMetin = btn.innerText;
-      btn.disabled = true;
-      btn.innerText = "Kaydediliyor...";
-
+    // Firestore'a asıl yazma işlemi (silme/düzenleme sonrası sessizce de çağrılabilir)
+    function persistToFirestore(onSuccess, onError) {
       const docId = seciliTarih();
       const kayitData = {
         list: selectedList.map(p => ({
@@ -847,15 +838,32 @@
       };
 
       db.collection("mesailer").doc(docId).set(kayitData)
-        .then(() => {
+        .then(() => { if (onSuccess) onSuccess(); })
+        .catch((err) => { if (onError) onError(err); else console.error("Kaydetme hatası:", err.message); });
+    }
+
+    function mesaileriKaydet() {
+      if (selectedList.length === 0) {
+        alert("Kaydedilecek personel yok.");
+        return;
+      }
+
+      const btn = document.getElementById("btnKaydet");
+      const eskiMetin = btn.innerText;
+      btn.disabled = true;
+      btn.innerText = "Kaydediliyor...";
+
+      persistToFirestore(
+        () => {
           btn.innerText = "Kaydedildi ✓";
           setTimeout(() => { btn.innerText = eskiMetin; btn.disabled = false; }, 1800);
-        })
-        .catch((err) => {
+        },
+        (err) => {
           alert("Kaydetme hatası: " + err.message);
           btn.innerText = eskiMetin;
           btn.disabled = false;
-        });
+        }
+      );
     }
 
     // Tarih seçicideki günün Firestore kaydı varsa çekip listeyi doldurur, yoksa listeyi boşaltır
@@ -965,6 +973,7 @@
           btn.classList.add('pop');
           setTimeout(() => btn.classList.remove('pop'), 500);
         }
+        persistToFirestore();
       }
     }
 
@@ -983,6 +992,10 @@
       closeModal('deleteModal');
       renderRows();
       renderRapor();
+      // Silme işlemini anında veritabanına da kaydet ki sayfa yenilenince geri gelmesin
+      persistToFirestore(null, (err) => {
+        alert("Silme, veritabanına kaydedilemedi: " + err.message);
+      });
     }
 
     // Satır Bazlı Liste Çizimi
@@ -1040,6 +1053,7 @@
         p.station = document.getElementById("editStation").value.trim();
         renderRows();
         renderRapor();
+        persistToFirestore();
       }
       closeModal('editModal');
     }
