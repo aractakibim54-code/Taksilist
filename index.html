@@ -4,9 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Ön Ambar Mesai Çıkış Paneli</title>
-  <!-- Firebase (Firestore) Kütüphaneleri -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,18 +19,11 @@
       --gold: #fbbf24;
       --gold-bright: #ffd668;
       --gold-deep: #c9910f;
-      --accent-yellow: #fbbf24;
-      --accent-red: #fb4570;
-      --accent-blue: #c9910f;
-      --accent-green: #c9910f;
-      --neon-violet: #ffd668;
       --text-main: #f8f5eb;
       --text-muted: #9aa3c4;
       --text-on-gold: #1c1404;
-      --border-color: rgba(255,255,255,0.12);
       --r-lg: 24px;
-      --r-md: 18px;
-      --r-sm: 12px;
+      --r-xl: 28px;
       --r-pill: 999px;
       --shadow-deep: 0 24px 60px -24px rgba(0,0,0,0.75);
       --safe-t: env(safe-area-inset-top, 0px);
@@ -47,13 +37,13 @@
       background: var(--bg-base);
       color: var(--text-main);
       min-height: 100vh;
-      padding: calc(18px + var(--safe-t)) 14px calc(112px + var(--safe-b));
+      padding: calc(28px + var(--safe-t)) 20px calc(28px + var(--safe-b));
       position: relative;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
+      display: flex; flex-direction: column;
     }
 
-    /* Ambient neon background */
     body::before {
       content: ""; position: fixed; inset: 0; z-index: -2;
       background:
@@ -76,1037 +66,139 @@
     .orb2 { width: 300px; height: 300px; bottom: 80px; right: -90px; background: radial-gradient(circle, rgba(30,64,110,.5), transparent 70%); animation-delay: -6s; }
     .orb3 { width: 220px; height: 220px; top: 42%; left: 55%; background: radial-gradient(circle, rgba(251,191,36,.18), transparent 70%); animation-delay: -3s; }
     @keyframes floatBlob { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(18px,-24px) scale(1.1); } }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes modalIn { from { opacity: 0; transform: scale(.92) translateY(16px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    .app-shell { max-width: 480px; margin: 0 auto; position: relative; }
+    .app-shell { max-width: 440px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; }
 
-    /* Tarih Seçici Barı */
-    .date-picker-bar {
-      display: flex; align-items: center; gap: 8px;
-      margin-bottom: 14px; position: relative;
-    }
-    .date-nav-btn {
-      flex-shrink: 0; width: 42px; height: 42px;
-      background: var(--glass);
-      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-      border: 1px solid var(--glass-border); border-radius: var(--r-pill);
-      color: var(--gold-bright); font-size: 1.3rem; font-weight: 800;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(255,255,255,.08);
-      transition: transform .15s ease, border-color .2s ease;
-    }
-    .date-nav-btn:active { transform: scale(.92); border-color: rgba(251,191,36,.5); }
-    .date-picker-field {
-      flex: 1; display: flex; align-items: center; gap: 8px;
-      background: var(--glass);
-      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-      border: 1px solid var(--glass-border); border-radius: var(--r-pill);
-      padding: 12px 16px; cursor: pointer; user-select: none;
-      box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(255,255,255,.08);
-      transition: border-color .2s ease;
-    }
-    .date-picker-field.open { border-color: rgba(251,191,36,.55); box-shadow: 0 0 0 4px rgba(251,191,36,.15), var(--shadow-deep); }
-    .date-picker-icon { font-size: 1rem; flex-shrink: 0; }
-    .date-picker-text {
-      flex: 1; color: var(--text-main); font-family: 'Sora', 'Manrope', sans-serif;
-      font-weight: 700; font-size: 0.95rem; letter-spacing: .2px;
-    }
-    .date-picker-caret { color: var(--text-muted); font-size: 0.7rem; transition: transform .25s ease; }
-    .date-picker-field.open .date-picker-caret { transform: rotate(180deg); color: var(--gold-bright); }
-
-    /* Özel Takvim Paneli */
-    .takvim-panel {
-      position: absolute; top: calc(100% + 8px); left: 0; right: 0;
-      background: rgba(12,15,28,.92);
-      backdrop-filter: blur(28px) saturate(160%); -webkit-backdrop-filter: blur(28px) saturate(160%);
-      border: 1px solid var(--glass-border-strong); border-radius: var(--r-lg);
-      box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(255,255,255,.08);
-      padding: 14px; z-index: 200;
-      display: none; animation: fadeUp .2s ease;
-    }
-    .takvim-panel.open { display: block; }
-    .takvim-header { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
-    .takvim-ok {
-      flex-shrink: 0; width: 32px; height: 32px; border: none; border-radius: var(--r-pill);
-      background: var(--glass); color: var(--gold-bright); font-size: 1.1rem; font-weight: 800;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      border: 1px solid var(--glass-border); transition: transform .15s ease;
-    }
-    .takvim-ok:active { transform: scale(.9); }
-    .takvim-secimler { flex: 1; display: flex; gap: 6px; }
-    .takvim-secimler select {
-      flex: 1; background: var(--glass); border: 1px solid var(--glass-border);
-      border-radius: var(--r-sm); color: var(--text-main); font-family: 'Sora', 'Manrope', sans-serif;
-      font-weight: 700; font-size: 0.85rem; padding: 7px 4px; text-align: center;
-      outline: none; -webkit-appearance: none; appearance: none; color-scheme: dark;
-    }
-    .takvim-gunler-header {
-      display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
-      margin-bottom: 4px;
-    }
-    .takvim-gunler-header span {
-      text-align: center; font-size: 0.7rem; font-weight: 700;
-      color: var(--text-muted); padding: 4px 0;
-    }
-    .takvim-gunler-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-    .takvim-gun {
-      aspect-ratio: 1; border: none; background: none; border-radius: var(--r-sm);
-      color: var(--text-main); font-size: 0.82rem; font-weight: 600; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: background .15s ease, transform .1s ease;
-    }
-    .takvim-gun:active { transform: scale(.9); }
-    .takvim-gun.bos { visibility: hidden; cursor: default; }
-    .takvim-gun.bugun { border: 1px solid rgba(251,191,36,.55); color: var(--gold-bright); }
-    .takvim-gun.secili {
+    .splash-header { text-align: center; margin-bottom: 34px; animation: fadeUp .5s ease; }
+    .splash-icon {
+      width: 62px; height: 62px; margin: 0 auto 16px; border-radius: var(--r-lg);
       background: linear-gradient(135deg, var(--gold-deep), var(--gold-bright));
-      color: var(--text-on-gold); font-weight: 800;
-      box-shadow: 0 0 14px rgba(251,191,36,.45);
+      display: flex; align-items: center; justify-content: center; font-size: 1.7rem;
+      box-shadow: 0 14px 30px -10px rgba(251,191,36,.45), inset 0 1px 0 rgba(255,255,255,.4);
     }
-    .takvim-gun:not(.secili):not(.bos):hover { background: rgba(255,255,255,.08); }
-    .takvim-bugun-btn {
-      width: 100%; margin-top: 12px; padding: 9px; border: none; border-radius: var(--r-pill);
-      background: var(--glass); border: 1px solid var(--glass-border);
-      color: var(--gold-bright); font-weight: 700; font-size: 0.8rem; cursor: pointer;
+    .splash-header h1 {
+      font-family: 'Sora', sans-serif; font-weight: 800; font-size: 1.28rem;
+      letter-spacing: .2px; margin-bottom: 8px;
     }
-    .takvim-bugun-btn:active { transform: scale(.97); }
-
-
-    /* Navigation Tabs — iOS style pill segmented control */
-    .nav-tabs {
-      display: flex; gap: 4px; margin-bottom: 18px;
-      background: var(--glass);
-      backdrop-filter: blur(20px) saturate(160%);
-      -webkit-backdrop-filter: blur(20px) saturate(160%);
-      padding: 5px; border-radius: var(--r-pill);
-      border: 1px solid var(--glass-border);
-      box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(255,255,255,.08);
-    }
-    .tab-btn {
-      flex: 1; padding: 11px 4px; border: none; background: none;
-      color: var(--text-muted); font-weight: 700; font-size: 0.78rem;
-      border-radius: var(--r-pill); cursor: pointer; transition: all .35s cubic-bezier(.2,.8,.2,1);
-      text-align: center; font-family: 'Sora', 'Manrope', sans-serif; letter-spacing: .2px;
-    }
-    .tab-btn.active {
-      background: linear-gradient(135deg, var(--gold-deep), var(--gold-bright));
-      color: var(--text-on-gold);
-      box-shadow: 0 6px 18px -4px rgba(201,145,15,.55), inset 0 1px 0 rgba(255,255,255,.35);
-      transform: translateY(-1px);
+    .splash-header p {
+      color: var(--text-muted); font-size: 0.88rem; font-weight: 500;
     }
 
-    .tab-content { display: none; }
-    .tab-content.active { display: block; animation: fadeUp .4s ease; }
-
-    /* Search & Autocomplete */
-    .search-container { position: relative; margin-bottom: 18px; }
-    .search-input {
-      width: 100%; padding: 15px 18px; font-size: 0.95rem;
-      background: var(--glass);
-      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-      border: 1px solid var(--glass-border); border-radius: var(--r-pill);
-      color: var(--text-main); outline: none; transition: all .3s ease;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 8px 20px -10px rgba(0,0,0,.55);
-    }
-    .search-input::placeholder { color: var(--text-muted); }
-    .search-input:focus {
-      border-color: rgba(251,191,36,.55);
-      box-shadow: 0 0 0 4px rgba(251,191,36,.15), 0 0 26px rgba(251,191,36,.25), inset 0 1px 0 rgba(255,255,255,.08);
+    .vardiya-list {
+      display: flex; flex-direction: column; gap: 22px;
+      flex: 1; justify-content: center;
     }
 
-    .suggestions-list {
-      position: absolute; top: 112%; left: 0; right: 0;
-      background: rgba(14,16,30,.88);
-      backdrop-filter: blur(26px) saturate(160%); -webkit-backdrop-filter: blur(26px) saturate(160%);
-      border: 1px solid var(--glass-border); border-radius: var(--r-md);
-      max-height: 220px; overflow-y: auto; z-index: 50; display: none;
-      box-shadow: var(--shadow-deep); animation: fadeUp .25s ease;
-    }
-    .suggestion-item { padding: 13px 16px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background .2s ease; }
-    .suggestion-item:last-child { border-bottom: none; }
-    .suggestion-item:active { background-color: rgba(251,191,36,.16); }
-
-    /* Satır Yapısı (Row List) — 3D glass cards with mirror sheen */
-    .list-container { display: flex; flex-direction: column; gap: 10px; perspective: 900px; }
-    .person-row {
-      position: relative; background: var(--glass);
-      backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%);
-      border: 1px solid var(--glass-border); border-radius: var(--r-md);
-      padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
-      box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(255,255,255,.07);
-      transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease, border-color .25s ease;
-      overflow: hidden;
-    }
-    .person-row::before {
-      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 50%;
-      background: linear-gradient(180deg, rgba(255,255,255,.10), transparent);
-      pointer-events: none;
-    }
-    .person-row:active {
-      transform: scale(.98) translateY(1px) rotateX(2deg);
-      border-color: rgba(251,191,36,.4);
-      box-shadow: 0 8px 22px -10px rgba(251,191,36,.32), inset 0 1px 0 rgba(255,255,255,.08);
-    }
-    .person-info { display: flex; flex-direction: column; gap: 3px; flex: 1; overflow: hidden; z-index: 1; }
-    .person-name { font-weight: 700; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .person-sub { font-size: 0.76rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    /* Compact Taxi Toggle Pill Button — neon glow */
-    .taxi-btn-sm {
-      padding: 7px 12px; border-radius: var(--r-pill); border: none;
-      font-weight: 800; font-size: 0.7rem; cursor: pointer; min-width: 88px; text-align: center;
-      letter-spacing: .3px; transition: transform .2s ease, box-shadow .2s ease; z-index: 1;
-    }
-    .taxi-btn-sm.wants-taxi {
-      background: linear-gradient(135deg, #fde68a, var(--accent-yellow)); color: #241705;
-      box-shadow: 0 0 14px rgba(251,191,36,.55), inset 0 1px 0 rgba(255,255,255,.45);
-    }
-    .taxi-btn-sm.no-taxi {
-      background: linear-gradient(135deg, #ff7a97, var(--accent-red)); color: #fff;
-      box-shadow: 0 0 14px rgba(251,69,112,.45), inset 0 1px 0 rgba(255,255,255,.25);
-    }
-    .taxi-btn-sm:active { transform: scale(.88); }
-    @keyframes balloonPop {
-      0%   { transform: scale(1); }
-      30%  { transform: scale(1.32); }
-      55%  { transform: scale(0.88); }
-      78%  { transform: scale(1.1); }
-      100% { transform: scale(1); }
-    }
-    .taxi-btn-sm.pop { animation: balloonPop .5s cubic-bezier(.34,1.56,.64,1); }
-
-    .row-actions { display: flex; gap: 6px; z-index: 1; }
-    .btn-icon {
-      background: var(--glass-strong); border: 1px solid var(--glass-border); color: #fff;
-      width: 34px; height: 34px; border-radius: var(--r-pill); cursor: pointer; font-size: 0.85rem;
-      display: flex; align-items: center; justify-content: center;
-      transition: transform .18s ease, background .18s ease; backdrop-filter: blur(10px);
-    }
-    .btn-icon:active { transform: scale(.88); background: rgba(255,255,255,.18); }
-    .btn-icon.del { background: rgba(251,69,112,.15); border-color: rgba(251,69,112,.35); color: #ffb3c4; }
-    .btn-icon.del:active { background: rgba(251,69,112,.32); }
-
-    /* Modal Styles — glass, neon-rimmed, 3D pop-in */
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(3,4,10,.72); backdrop-filter: blur(6px);
-      display: none; align-items: center; justify-content: center; z-index: 200; padding: 16px;
-    }
-    .modal-overlay.open { display: flex; animation: overlayIn .25s ease; }
-    .modal-body {
-      background: rgba(17,19,36,.88);
-      backdrop-filter: blur(28px) saturate(160%); -webkit-backdrop-filter: blur(28px) saturate(160%);
-      border: 1px solid var(--glass-border-strong); border-radius: var(--r-lg);
-      padding: 22px; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 13px;
-      box-shadow: 0 30px 80px -20px rgba(0,0,0,.8), 0 0 40px rgba(251,191,36,.1), inset 0 1px 0 rgba(255,255,255,.08);
-      animation: modalIn .32s cubic-bezier(.2,.9,.25,1.1);
-    }
-    .modal-title { font-weight: 700; font-size: 1.08rem; font-family: 'Sora', sans-serif; }
-    .modal-field { display: flex; flex-direction: column; gap: 5px; }
-    .modal-field label { font-size: 0.8rem; color: var(--text-muted); }
-    .modal-field input {
-      padding: 11px 13px; background: rgba(5,6,16,.6); border: 1px solid var(--glass-border);
-      border-radius: var(--r-sm); color: #fff; outline: none; transition: border-color .2s ease, box-shadow .2s ease;
-    }
-    .modal-field input:focus { border-color: rgba(251,191,36,.55); box-shadow: 0 0 0 3px rgba(251,191,36,.15); }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
-    .btn-modal { padding: 10px 16px; border-radius: var(--r-pill); border: none; font-weight: 700; font-size: .85rem; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
-    .btn-modal:active { transform: scale(.93); }
-    .btn-modal.save { background: linear-gradient(135deg, var(--gold-deep), var(--gold-bright)); color: var(--text-on-gold); box-shadow: 0 6px 18px -6px rgba(201,145,15,.55); }
-    .btn-modal.danger { background: linear-gradient(135deg, #ff7a97, var(--accent-red)); color: #fff; box-shadow: 0 6px 18px -6px rgba(251,69,112,.55); }
-    .btn-modal.cancel { background: var(--glass-strong); color: #fff; border: 1px solid var(--glass-border); }
-
-    /* TAKSİ SEÇİM MODALI — KARE, YAN YANA, 3D SPLASH BUTONLAR + NEON */
-    .taxi-choice-name { text-align: center; font-size: 1.15rem; font-weight: 800; color: #fff; margin-bottom: 4px; }
-    .taxi-choice-square-wrap { display: flex; justify-content: center; gap: 20px; margin-top: 6px; padding: 4px; }
-    .btn-taxi-square {
-      width: 112px; height: 112px; border-radius: 24px; cursor: pointer;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-      font-weight: 900; font-size: 1rem; letter-spacing: .3px; text-transform: uppercase;
-      transition: transform .12s ease, box-shadow .12s ease;
-    }
-    .btn-taxi-square svg { width: 48px; height: 48px; filter: drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
-    .btn-taxi-square:active { transform: translateY(5px); animation: none !important; }
-    .btn-taxi-square.yes {
-      background: linear-gradient(160deg, var(--gold-bright), var(--gold-deep)); color: var(--text-on-gold);
-      border: 2px solid rgba(255,232,140,.95);
-      text-shadow: 0 0 8px rgba(255,255,255,.6);
-      animation: neonPulseYellow 2s ease-in-out infinite;
-    }
-    .btn-taxi-square.yes:active {
-      box-shadow: 0 3px 0 0 #a3760d, 0 0 22px 6px rgba(255,214,104,.9), 0 10px 18px -8px rgba(201,145,15,.7), inset 0 2px 0 rgba(255,255,255,.4);
-    }
-    .btn-taxi-square.no {
-      background: linear-gradient(160deg, #ff7a97, var(--accent-red)); color: #fff;
-      border: 2px solid rgba(255,150,175,.95);
-      text-shadow: 0 0 8px rgba(255,255,255,.55);
-      animation: neonPulseRed 2s ease-in-out infinite;
-    }
-    .btn-taxi-square.no:active {
-      box-shadow: 0 3px 0 0 #b3123a, 0 0 22px 6px rgba(255,90,130,.9), 0 10px 18px -8px rgba(251,69,112,.7), inset 0 2px 0 rgba(255,255,255,.25);
-    }
-    @keyframes neonPulseYellow {
-      0%, 100% { box-shadow: 0 8px 0 0 #a3760d, 0 0 12px 2px rgba(255,214,104,.65), 0 0 28px 7px rgba(255,193,7,.4), 0 18px 28px -10px rgba(201,145,15,.75), inset 0 2px 0 rgba(255,255,255,.6); }
-      50%      { box-shadow: 0 8px 0 0 #a3760d, 0 0 24px 6px rgba(255,214,104,1), 0 0 54px 16px rgba(255,193,7,.7), 0 18px 28px -10px rgba(201,145,15,.85), inset 0 2px 0 rgba(255,255,255,.8); }
-    }
-    @keyframes neonPulseRed {
-      0%, 100% { box-shadow: 0 8px 0 0 #b3123a, 0 0 12px 2px rgba(255,80,120,.65), 0 0 28px 7px rgba(251,69,112,.4), 0 18px 28px -10px rgba(251,69,112,.75), inset 0 2px 0 rgba(255,255,255,.4); }
-      50%      { box-shadow: 0 8px 0 0 #b3123a, 0 0 24px 6px rgba(255,80,120,1), 0 0 54px 16px rgba(251,69,112,.7), 0 18px 28px -10px rgba(251,69,112,.85), inset 0 2px 0 rgba(255,255,255,.55); }
-    }
-
-    /* PDF Printable Preview Styling — kept print-safe (light & solid), premium report look */
-    .pdf-preview {
-      background: #ffffff; color: #131722; padding: 16px 12px 14px;
-      border-radius: var(--r-md); box-shadow: 0 20px 45px -18px rgba(0,0,0,.55);
+    /* Kare, yuvarlak köşeli, 3D kabarık vardiya kartı */
+    .vardiya-card {
       position: relative;
-    }
-    .pdf-header { text-align: center; padding-bottom: 14px; margin-bottom: 14px; position: relative; border-bottom: 1px solid #e9ebf3; }
-    .pdf-header::after {
-      content: ""; position: absolute; left: 50%; bottom: -1px; transform: translateX(-50%);
-      width: 60px; height: 3px; border-radius: 4px;
-      background: linear-gradient(90deg, var(--gold-deep), var(--gold-bright));
-    }
-    .pdf-header h2 { font-family: 'Sora', sans-serif; letter-spacing: .3px; font-size: 1.02rem; color: #12131f; }
-    .pdf-header p { font-size: 0.8rem; color: #6b7280; margin-top: 5px; }
-    .pdf-section-title {
-      font-size: 0.9rem; font-weight: 800; letter-spacing: .2px; line-height: 1.5;
-      margin-top: 14px; margin-bottom: 10px;
-      background: linear-gradient(135deg, #fff8e6, #fdecc3);
-      color: #1e2333; padding: 10px 14px; border-radius: 12px;
-      border: 1px solid #f0dfa8;
-    }
-    #pdfTaxiCount, #pdfTotalCount {
-      display: inline-block; background: linear-gradient(135deg, var(--gold-deep), var(--gold-bright));
-      color: var(--text-on-gold); padding: 1px 9px; border-radius: 999px; font-weight: 800; font-size: 0.85rem;
-      vertical-align: middle;
-    }
-    .pdf-row-list { border-radius: 12px; overflow: hidden; border: 1px solid #e5e7ee; }
-    .pdf-row-head {
-      display: flex; align-items: center; gap: 8px; padding: 10px 12px;
-      background: linear-gradient(135deg, var(--navy-deep), var(--navy-mid));
-      color: var(--gold-bright); font-size: 0.66rem; font-weight: 800;
-      text-transform: uppercase; letter-spacing: .4px;
-    }
-    .pdf-row {
-      display: flex; align-items: center; gap: 8px; padding: 11px 12px;
-      font-size: 0.8rem; border-top: 1px solid #eef0f5;
-    }
-    .pdf-row:nth-child(even) { background: #f8f9fc; }
-    .c-idx { flex: 0 0 20px; text-align: center; color: #9aa2b8; font-weight: 800; }
-    .c-name { flex: 1 1 40%; min-width: 0; font-weight: 800; color: #171b28; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .c-phone { flex: 0 0 auto; margin-left: auto; font-weight: 700; color: #374151; font-size: 0.78rem; white-space: nowrap; }
-    .pdf-hidden-for-screen { display: none; }
-    .pdf-del-btn {
-      flex: 0 0 auto; cursor: pointer; font-size: 0.82rem; padding: 4px 6px; border-radius: 8px;
-      transition: transform .15s ease, background .15s ease;
-    }
-    .pdf-del-btn:active { transform: scale(.85); background: rgba(251,69,112,.14); }
-    .c-status { flex: 0 0 auto; margin-left: auto; }
-    .pdf-row-head-2 .c-status { text-align: right; }
-    .pdf-row-head .c-idx, .pdf-row-head .c-name, .pdf-row-head .c-phone, .pdf-row-head .c-status { color: inherit; }
-    .status-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.68rem; font-weight: 800; white-space: nowrap; }
-    .status-badge.taxi-yes { background: linear-gradient(135deg, var(--gold-deep), var(--gold-bright)); color: var(--text-on-gold); }
-    .status-badge.taxi-no { background: #e5e7ee; color: #6b7280; }
-    .pdf-row-empty { padding: 18px 12px; text-align: center; color: #9aa0b4; font-size: 0.85rem; border-top: 1px solid #eef0f5; }
-
-    /* Taksi Listesi — gerçek Excel tarzı grid tablo */
-    .excel-table-wrap { overflow-x: auto; border: 1px solid #333; border-radius: 8px; -webkit-overflow-scrolling: touch; }
-    table.excel-table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 0.72rem; }
-    .excel-table th, .excel-table td {
-      border: 1px solid #333; padding: 6px 7px; text-align: left; white-space: nowrap; color: #171b28;
-    }
-    .excel-table th.col-adres, .excel-table td.col-adres { white-space: normal; word-break: break-word; min-width: 120px; }
-    .excel-table th.col-no, .excel-table td.col-no { width: 34px; text-align: center; padding-left: 3px; padding-right: 3px; }
-    .excel-table thead th {
-      background: linear-gradient(135deg, var(--navy-deep), var(--navy-mid));
-      color: var(--gold-bright); font-weight: 800; text-transform: uppercase; font-size: 0.62rem; letter-spacing: .3px;
-    }
-    .excel-table tbody tr:nth-child(even) { background: #f7f8fb; }
-    .excel-table tbody tr { cursor: pointer; }
-    .excel-table td.col-del { text-align: center; cursor: pointer; width: 30px; }
-    #pdfContent.exporting .col-del { display: none; }
-
-    /* Sticky Footer Bar — floating glass pill */
-    .footer-bar {
-      position: fixed; bottom: calc(14px + var(--safe-b)); left: 50%; transform: translateX(-50%);
-      width: calc(100% - 28px); max-width: 480px;
-      background: rgba(14,16,29,.78);
-      backdrop-filter: blur(24px) saturate(160%); -webkit-backdrop-filter: blur(24px) saturate(160%);
-      border: 1px solid var(--glass-border-strong); border-radius: var(--r-pill);
-      padding: 12px 12px 12px 20px;
-      display: flex; justify-content: space-between; align-items: center; gap: 10px;
-      box-shadow: 0 20px 50px -18px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.08);
-      z-index: 100;
-    }
-    .pdf-dl-btn {
-      background: linear-gradient(135deg, var(--gold-deep), var(--gold-bright)); color: var(--text-on-gold); border: none;
-      padding: 11px 18px; border-radius: var(--r-pill); font-weight: 800; font-size: 0.82rem; cursor: pointer;
-      box-shadow: 0 0 18px rgba(251,191,36,.45), inset 0 1px 0 rgba(255,255,255,.4);
+      aspect-ratio: 1.55 / 1;
+      border-radius: var(--r-xl);
+      border: none;
+      cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 10px;
+      background: linear-gradient(160deg, #22315c 0%, #182448 55%, #0f1830 100%);
+      box-shadow:
+        0 22px 40px -16px rgba(0,0,0,.65),
+        0 2px 0 rgba(255,255,255,.06) inset,
+        0 -14px 26px -12px rgba(0,0,0,.55) inset,
+        0 10px 18px -6px rgba(255,255,255,.05) inset;
+      border: 1px solid rgba(255,255,255,.08);
       transition: transform .15s ease, box-shadow .15s ease;
+      animation: fadeUp .55s ease both;
     }
-    .pdf-dl-btn:active { transform: scale(.95); box-shadow: 0 0 26px rgba(251,191,36,.7), inset 0 1px 0 rgba(255,255,255,.5); }
+    .vardiya-card:nth-child(2) { animation-delay: .08s; }
+    .vardiya-card:active:not(.disabled) {
+      transform: translateY(3px) scale(.98);
+      box-shadow:
+        0 10px 22px -12px rgba(0,0,0,.6),
+        0 2px 0 rgba(255,255,255,.05) inset,
+        0 -8px 16px -8px rgba(0,0,0,.5) inset;
+    }
+    .vardiya-card.gunduz {
+      background: linear-gradient(160deg, #3a2f0f 0%, #2a2308 55%, #171304 100%);
+    }
+    .vardiya-card .saat-rozet {
+      width: 58px; height: 58px; border-radius: var(--r-pill);
+      background: linear-gradient(135deg, var(--gold-deep), var(--gold-bright));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      box-shadow:
+        0 10px 20px -6px rgba(251,191,36,.5),
+        inset 0 2px 3px rgba(255,255,255,.55),
+        inset 0 -4px 6px rgba(120,80,0,.35);
+    }
+    .vardiya-card.gece .saat-rozet {
+      background: linear-gradient(135deg, #1e2a52, #3a4d8f);
+      box-shadow:
+        0 10px 20px -6px rgba(58,77,143,.5),
+        inset 0 2px 3px rgba(255,255,255,.25),
+        inset 0 -4px 6px rgba(10,15,35,.5);
+    }
+    .vardiya-card .saat-metin {
+      font-family: 'Sora', sans-serif; font-weight: 800; font-size: 1.18rem;
+      letter-spacing: .3px; color: var(--text-main);
+      text-shadow: 0 2px 6px rgba(0,0,0,.4);
+    }
+    .vardiya-card .alt-metin {
+      font-size: 0.78rem; font-weight: 700; color: var(--gold-bright);
+      letter-spacing: .3px; text-transform: uppercase;
+    }
+    .vardiya-card.gece .alt-metin { color: #9fb0e6; }
+
+    .vardiya-card.disabled {
+      cursor: default; filter: grayscale(.55) brightness(.7);
+    }
+    .yakinda-etiket {
+      position: absolute; top: 14px; right: 14px;
+      background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.15);
+      border-radius: var(--r-pill); padding: 4px 10px;
+      font-size: 0.62rem; font-weight: 800; letter-spacing: .4px;
+      color: var(--text-muted); text-transform: uppercase;
+    }
+
+    .splash-footer {
+      text-align: center; margin-top: 28px; font-size: 0.72rem;
+      color: var(--text-muted); opacity: .7;
+    }
   </style>
 </head>
 <body>
-
   <div class="bg-orb orb1"></div>
   <div class="bg-orb orb2"></div>
   <div class="bg-orb orb3"></div>
 
   <div class="app-shell">
-
-  <!-- Tarih Seçici -->
-  <div class="date-picker-bar">
-    <button class="date-nav-btn" onclick="tarihiKaydir(-1)" aria-label="Önceki gün">‹</button>
-    <div class="date-picker-field" id="tarihAlani" onclick="takvimAcKapa(event)">
-      <span class="date-picker-icon">📅</span>
-      <span class="date-picker-text" id="tarihGosterim"></span>
-      <span class="date-picker-caret">▾</span>
+    <div class="splash-header">
+      <div class="splash-icon">🚕</div>
+      <h1>Ön Ambar Mesai Çıkış Paneli</h1>
+      <p>Taksi listesi oluşturmak için vardiya seçin</p>
     </div>
-    <button class="date-nav-btn" onclick="tarihiKaydir(1)" aria-label="Sonraki gün">›</button>
 
-    <div class="takvim-panel" id="takvimPanel">
-      <div class="takvim-header">
-        <button class="takvim-ok" type="button" onclick="takvimAyDegistir(-1)" aria-label="Önceki ay">‹</button>
-        <div class="takvim-secimler">
-          <select id="takvimAySec" onchange="takvimSecimDegisti()"></select>
-          <select id="takvimYilSec" onchange="takvimSecimDegisti()"></select>
-        </div>
-        <button class="takvim-ok" type="button" onclick="takvimAyDegistir(1)" aria-label="Sonraki ay">›</button>
-      </div>
-      <div class="takvim-gunler-header">
-        <span>Pt</span><span>Sa</span><span>Ça</span><span>Pe</span><span>Cu</span><span>Ct</span><span>Pz</span>
-      </div>
-      <div class="takvim-gunler-grid" id="takvimGunlerGrid"></div>
-      <button class="takvim-bugun-btn" type="button" onclick="takvimBugunSec()">Bugüne Git</button>
+    <div class="vardiya-list">
+      <button type="button" class="vardiya-card gunduz" onclick="vardiyaSec('08-16')">
+        <div class="saat-rozet">☀️</div>
+        <div class="saat-metin">08:00 – 16:00</div>
+        <div class="alt-metin">Taksi Listesi Oluştur</div>
+      </button>
+
+      <button type="button" class="vardiya-card gece disabled" aria-disabled="true">
+        <span class="yakinda-etiket">Yakında</span>
+        <div class="saat-rozet">🌙</div>
+        <div class="saat-metin">16:00 – 00:00</div>
+        <div class="alt-metin">Taksi Listesi Oluştur</div>
+      </button>
     </div>
+
+    <div class="splash-footer">Vardiyanızı seçtikten sonra günlük listeyi düzenleyebilirsiniz</div>
   </div>
-
-  <!-- Sekme Butonları -->
-  <div class="nav-tabs">
-    <button class="tab-btn active" onclick="switchTab(event, 'tabSaha')">Taksi Ekleme Listesi</button>
-    <button class="tab-btn" onclick="switchTab(event, 'tabTaksiRapor')">Taksi Listesi</button>
-    <button class="tab-btn" onclick="switchTab(event, 'tabTumMesaiciler')">Tüm Mesaiciler</button>
-  </div>
-
-  <!-- SEKME 1: SAHA EKLEME -->
-  <div id="tabSaha" class="tab-content active">
-    <div class="search-container">
-      <input type="text" id="searchInput" class="search-input" placeholder="İsim veya Sicil No yazın..." autocomplete="off">
-      <div id="suggestions" class="suggestions-list"></div>
-    </div>
-
-    <div class="list-container" id="rowsContainer">
-      <!-- Satırlar dinamik eklenecek -->
-    </div>
-  </div>
-
-  <!-- SEKME 2: TAKSİ LİSTESİ VE RAPOR (SADECE TAKSİ İSTEYENLER) -->
-  <div id="tabTaksiRapor" class="tab-content">
-
-    <!-- EKRANDA GÖRÜNEN KART LİSTESİ (SADECE S.NO / AD SOYAD / TEL NO) -->
-    <div class="pdf-preview">
-      <div class="pdf-header">
-        <h2>08:00/16:00 ÖN AMBAR MESAİ TAKSİ LİSTESİ</h2>
-        <p>Tarih: <span id="pdfDateScreen"></span></p>
-      </div>
-
-      <div class="pdf-section-title">🚖 TAKSİ İLE GİDECEK PERSONEL (<span id="pdfTaxiCountScreen">0</span> Kişi)</div>
-      <div class="pdf-row-list">
-        <div class="pdf-row-head">
-          <span class="c-idx">#</span><span class="c-name">Ad Soyad</span><span class="c-phone">Tel No</span>
-        </div>
-        <div id="taxiCardTable"></div>
-      </div>
-    </div>
-
-    <!-- PDF ÜRETİMİ İÇİN (EKRANDA GÖRÜNMEZ, SADECE PDF İNDİRİRKEN KULLANILIR — DEĞİŞTİRİLMEDİ) -->
-    <div id="pdfContent" class="pdf-preview pdf-hidden-for-screen">
-      <div class="pdf-header">
-        <h2>08:00/16:00 ÖN AMBAR MESAİ TAKSİ LİSTESİ</h2>
-        <p>Tarih: <span id="pdfDate"></span></p>
-      </div>
-
-      <div class="pdf-section-title">🚖 TAKSİ İLE GİDECEK PERSONEL (<span id="pdfTaxiCount">0</span> Kişi)</div>
-      <div class="excel-table-wrap">
-        <table class="excel-table">
-          <thead>
-            <tr><th class="col-no">S.No</th><th>Ad Soyad</th><th>Tel No</th><th class="col-adres">Adres</th><th class="col-del"></th></tr>
-          </thead>
-          <tbody id="pdfTaxiTable"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- SEKME 3: TÜM MESAİYE KALANLAR (AYRI SEKME) -->
-  <div id="tabTumMesaiciler" class="tab-content">
-    <div class="pdf-preview">
-      <div class="pdf-header">
-        <h2>ÖN AMBAR TÜM MESAİ LİSTESİ</h2>
-        <p>Tarih: <span id="pdfDateAll"></span></p>
-      </div>
-
-      <div class="pdf-section-title">📋 TÜM MESAİYE KALANLAR (<span id="pdfTotalCount">0</span> Kişi)</div>
-      <div class="pdf-row-list">
-        <div class="pdf-row-head pdf-row-head-2">
-          <span class="c-idx">#</span><span class="c-name">Ad Soyad</span><span class="c-status">Durum</span>
-        </div>
-        <div id="pdfAllTable"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODERN EDIT MODAL -->
-  <div class="modal-overlay" id="editModal">
-    <div class="modal-body">
-      <div class="modal-title">Personel Bilgisi Düzenle</div>
-      <input type="hidden" id="editPersonId">
-      <div class="modal-field">
-        <label>Sicil No</label>
-        <input type="text" id="editSicil">
-      </div>
-      <div class="modal-field">
-        <label>Ad Soyad</label>
-        <input type="text" id="editName">
-      </div>
-      <div class="modal-field">
-        <label>Telefon</label>
-        <input type="text" id="editPhone">
-      </div>
-      <div class="modal-field">
-        <label>Durak / Adres</label>
-        <input type="text" id="editStation">
-      </div>
-      <div class="modal-actions">
-        <button class="btn-modal cancel" onclick="closeModal('editModal')">İptal</button>
-        <button class="btn-modal save" onclick="saveModal()">Kaydet</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODERN DELETE CONFIRMATION MODAL -->
-  <div class="modal-overlay" id="deleteModal">
-    <div class="modal-body">
-      <div class="modal-title">Personeli Sil</div>
-      <p style="font-size: 0.9rem; color: var(--text-muted);" id="deleteConfirmText">Bu kişiyi mesai listesinden silmek istediğinize emin misiniz?</p>
-      <input type="hidden" id="deletePersonId">
-      <div class="modal-actions">
-        <button class="btn-modal cancel" onclick="closeModal('deleteModal')">Vazgeç</button>
-        <button class="btn-modal danger" onclick="confirmDelete()">Evet, Sil</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- TAKSİ SEÇİM MODALI (İSİM SEÇİLİNCE AÇILIR) -->
-  <div class="modal-overlay" id="taxiChoiceModal">
-    <div class="modal-body">
-      <div class="taxi-choice-name" id="taxiChoiceName"></div>
-      <input type="hidden" id="taxiChoicePersonId">
-      <div class="taxi-choice-square-wrap">
-        <button class="btn-taxi-square yes" onclick="confirmTaxiChoice(true)">
-          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="23" y="6" width="18" height="7.4" rx="2.4" fill="#1a1405"/>
-            <rect x="25.2" y="8.3" width="13.6" height="3.2" rx="1.2" fill="#fff6d8"/>
-            <path d="M15 26L18.5 14.4C19 12.7 20.6 11.5 22.4 11.5H41.6C43.4 11.5 45 12.7 45.5 14.4L49 26H15Z" fill="#1a1405"/>
-            <path d="M18.7 23.3L20.6 15.6C20.8 14.9 21.4 14.4 22.1 14.4H30.4V23.3H18.7Z" fill="#cdeaff"/>
-            <path d="M33.6 14.4H41.9C42.6 14.4 43.2 14.9 43.4 15.6L45.3 23.3H33.6V14.4Z" fill="#cdeaff"/>
-            <rect x="4" y="26" width="56" height="18.5" rx="9" fill="#1a1405"/>
-            <rect x="7" y="33" width="6" height="6" fill="#fff6d8"/>
-            <rect x="19" y="33" width="6" height="6" fill="#fff6d8"/>
-            <rect x="31" y="33" width="6" height="6" fill="#fff6d8"/>
-            <rect x="43" y="33" width="6" height="6" fill="#fff6d8"/>
-            <circle cx="18" cy="45" r="7.2" fill="#0d0b04"/>
-            <circle cx="18" cy="45" r="3" fill="#fff6d8"/>
-            <circle cx="46" cy="45" r="7.2" fill="#0d0b04"/>
-            <circle cx="46" cy="45" r="3" fill="#fff6d8"/>
-          </svg>
-          Evet
-        </button>
-        <button class="btn-taxi-square no" onclick="confirmTaxiChoice(false)">
-          Hayır
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ALT BİLGİ VE AKSİYON -->
-  <div class="footer-bar">
-    <div style="font-size: 0.85rem;">
-      Mesaici: <b id="lblTotal">0</b> | Taksi: <strong id="lblTaxi" style="color: var(--accent-yellow);">0</strong>
-    </div>
-    <button class="pdf-dl-btn" id="btnKaydet" onclick="mesaileriKaydet()">💾 Kaydet</button>
-  </div>
-
-  </div><!-- /.app-shell -->
 
   <script>
-    const masterPersonnelList = [
-      { id: 1, sicil: "1001", name: "Ahmet Yılmaz", phone: "0532 111 2233", station: "Çark Caddesi / Adapazarı" },
-      { id: 2, sicil: "1002", name: "Mehmet Demir", phone: "0533 222 3344", station: "Serdivan AVM Arkası" },
-      { id: 3, sicil: "1003", name: "Mustafa Kaya", phone: "0535 333 4455", station: "Erenler Sapağı" },
-      { id: 4, sicil: "1004", name: "Ali Öztürk", phone: "0536 444 5566", station: "Korucuk TOKİ" },
-      { id: 5, sicil: "1005", name: "Hüseyin Çelik", phone: "0537 555 6677", station: "Yenikent Camili 1" },
-      { id: 6, sicil: "1006", name: "İbrahim Şahin", phone: "0538 666 7788", station: "Ozanlar Meydanı" },
-      { id: 7, sicil: "1007", name: "Osman Koç", phone: "0539 777 8899", station: "Hendek Sapağı" },
-      { id: 8, sicil: "1008", name: "Süleyman Arslan", phone: "0540 888 9900", station: "Arifiye Gar Karşısı" },
-      { id: 9, sicil: "1009", name: "Ömer Polat", phone: "0541 999 0011", station: "Sapanca Yolu" },
-      { id: 10, sicil: "1010", name: "İsmail Aydın", phone: "0542 000 1122", station: "Karasu Yolu Üzeri" }
-    ];
-
-    let selectedList = [];
-
-    // Firebase / Firestore Kurulumu
-    const firebaseConfig = {
-      apiKey: "AIzaSyDoYxaVR0f9qiODH641vRzmdoyCA9zwVvo",
-      authDomain: "on-ambar-mesai-cfc43.firebaseapp.com",
-      projectId: "on-ambar-mesai-cfc43",
-      storageBucket: "on-ambar-mesai-cfc43.firebasestorage.app",
-      messagingSenderId: "872875586402",
-      appId: "1:872875586402:web:7afcc23c3ec7afb2fc723b"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    function bugununTarihi() {
-      const d = new Date();
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      const g = String(d.getDate()).padStart(2, "0");
-      return `${y}-${m}-${g}`;
+    function vardiyaSec(kod) {
+      window.location.href = `panel.html?vardiya=${kod}`;
     }
-
-    const AY_ADLARI = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
-    const GUN_ADLARI = ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
-
-    let seciliTarihDegeri = bugununTarihi();
-    let takvimGorunenYil, takvimGorunenAy; // panelde gösterilen ay (0-11)
-
-    // Şu an seçili günü "YYYY-MM-DD" olarak döner
-    function seciliTarih() {
-      return seciliTarihDegeri;
-    }
-
-    // Üst çubuktaki metni ("27 Eylül 2026, Pazar") günceller
-    function tarihGosterimiGuncelle() {
-      const [y, m, g] = seciliTarihDegeri.split("-").map(Number);
-      const d = new Date(y, m - 1, g);
-      document.getElementById("tarihGosterim").innerText =
-        `${g} ${AY_ADLARI[m - 1]} ${y}, ${GUN_ADLARI[d.getDay()]}`;
-    }
-
-    // İleri/geri ok butonları ile günü ±1 kaydırır
-    function tarihiKaydir(fark) {
-      const [y, m, g] = seciliTarihDegeri.split("-").map(Number);
-      const d = new Date(y, m - 1, g);
-      d.setDate(d.getDate() + fark);
-      seciliTarihDegeri = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-      tarihGosterimiGuncelle();
-      tarihDegisti();
-    }
-
-    // Tarih değişince o güne ait kaydı yükler (yoksa listeyi temizler)
-    function tarihDegisti() {
-      seciliTarihiYukle();
-    }
-
-    // Takvim panelini açar/kapatır
-    function takvimAcKapa(e) {
-      if (e) e.stopPropagation();
-      const panel = document.getElementById("takvimPanel");
-      const alan = document.getElementById("tarihAlani");
-      const aciliyor = !panel.classList.contains("open");
-      if (aciliyor) {
-        const [y, m] = seciliTarihDegeri.split("-").map(Number);
-        takvimGorunenYil = y;
-        takvimGorunenAy = m - 1;
-        takvimSecimleriDoldur();
-        takvimCiz();
-        panel.classList.add("open");
-        alan.classList.add("open");
-      } else {
-        takvimKapat();
-      }
-    }
-
-    function takvimKapat() {
-      document.getElementById("takvimPanel").classList.remove("open");
-      document.getElementById("tarihAlani").classList.remove("open");
-    }
-
-    // Ay/Yıl dropdown'larını doldurur (ilk açılışta)
-    function takvimSecimleriDoldur() {
-      const aySec = document.getElementById("takvimAySec");
-      const yilSec = document.getElementById("takvimYilSec");
-
-      if (aySec.options.length === 0) {
-        AY_ADLARI.forEach((ad, idx) => {
-          const opt = document.createElement("option");
-          opt.value = idx;
-          opt.innerText = ad;
-          aySec.appendChild(opt);
-        });
-      }
-      if (yilSec.options.length === 0) {
-        const simdikiYil = new Date().getFullYear();
-        for (let y = simdikiYil - 3; y <= simdikiYil + 3; y++) {
-          const opt = document.createElement("option");
-          opt.value = y;
-          opt.innerText = y;
-          yilSec.appendChild(opt);
-        }
-      }
-      aySec.value = takvimGorunenAy;
-      yilSec.value = takvimGorunenYil;
-    }
-
-    // Panelde bir önceki/sonraki aya geçer
-    function takvimAyDegistir(fark) {
-      takvimGorunenAy += fark;
-      if (takvimGorunenAy < 0) { takvimGorunenAy = 11; takvimGorunenYil--; }
-      if (takvimGorunenAy > 11) { takvimGorunenAy = 0; takvimGorunenYil++; }
-      document.getElementById("takvimAySec").value = takvimGorunenAy;
-      document.getElementById("takvimYilSec").value = takvimGorunenYil;
-      takvimCiz();
-    }
-
-    // Ay/Yıl dropdown'larından biri değişince
-    function takvimSecimDegisti() {
-      takvimGorunenAy = parseInt(document.getElementById("takvimAySec").value, 10);
-      takvimGorunenYil = parseInt(document.getElementById("takvimYilSec").value, 10);
-      takvimCiz();
-    }
-
-    // Gün ızgarasını çizer
-    function takvimCiz() {
-      const grid = document.getElementById("takvimGunlerGrid");
-      grid.innerHTML = "";
-
-      const ilkGun = new Date(takvimGorunenYil, takvimGorunenAy, 1);
-      const ayinGunSayisi = new Date(takvimGorunenYil, takvimGorunenAy + 1, 0).getDate();
-      const bosHucre = (ilkGun.getDay() + 6) % 7; // Pazartesi = 0 olacak şekilde kaydır
-
-      for (let i = 0; i < bosHucre; i++) {
-        const bos = document.createElement("div");
-        bos.className = "takvim-gun bos";
-        grid.appendChild(bos);
-      }
-
-      const bugun = bugununTarihi();
-      for (let gun = 1; gun <= ayinGunSayisi; gun++) {
-        const tarihStr = `${takvimGorunenYil}-${String(takvimGorunenAy+1).padStart(2,"0")}-${String(gun).padStart(2,"0")}`;
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "takvim-gun";
-        if (tarihStr === bugun) btn.classList.add("bugun");
-        if (tarihStr === seciliTarihDegeri) btn.classList.add("secili");
-        btn.innerText = gun;
-        btn.onclick = () => takvimGunSec(tarihStr);
-        grid.appendChild(btn);
-      }
-    }
-
-    // Bir güne tıklanınca
-    function takvimGunSec(tarihStr) {
-      seciliTarihDegeri = tarihStr;
-      tarihGosterimiGuncelle();
-      takvimKapat();
-      tarihDegisti();
-    }
-
-    // "Bugüne Git" butonu
-    function takvimBugunSec() {
-      takvimGunSec(bugununTarihi());
-    }
-
-    // Firestore'a asıl yazma işlemi (silme/düzenleme sonrası sessizce de çağrılabilir)
-    function persistToFirestore(onSuccess, onError) {
-      const docId = seciliTarih();
-      const kayitData = {
-        list: selectedList.map(p => ({
-          sicil: p.sicil,
-          name: p.name,
-          phone: p.phone,
-          station: p.station,
-          wantsTaxi: !!p.wantsTaxi
-        })),
-        taxiCount: selectedList.filter(p => p.wantsTaxi).length,
-        totalCount: selectedList.length,
-        savedAt: new Date().toISOString()
-      };
-
-      db.collection("mesailer").doc(docId).set(kayitData)
-        .then(() => { if (onSuccess) onSuccess(); })
-        .catch((err) => { if (onError) onError(err); else console.error("Kaydetme hatası:", err.message); });
-    }
-
-    function mesaileriKaydet() {
-      if (selectedList.length === 0) {
-        alert("Kaydedilecek personel yok.");
-        return;
-      }
-
-      const btn = document.getElementById("btnKaydet");
-      const eskiMetin = btn.innerText;
-      btn.disabled = true;
-      btn.innerText = "Kaydediliyor...";
-
-      persistToFirestore(
-        () => {
-          btn.innerText = "Kaydedildi ✓";
-          setTimeout(() => { btn.innerText = eskiMetin; btn.disabled = false; }, 1800);
-        },
-        (err) => {
-          alert("Kaydetme hatası: " + err.message);
-          btn.innerText = eskiMetin;
-          btn.disabled = false;
-        }
-      );
-    }
-
-    // Tarih seçicideki günün Firestore kaydı varsa çekip listeyi doldurur, yoksa listeyi boşaltır
-    let sonrakiGeciciId = -1;
-    function seciliTarihiYukle() {
-      const docId = seciliTarih();
-      db.collection("mesailer").doc(docId).get()
-        .then((doc) => {
-          if (!doc.exists || !doc.data().list || !Array.isArray(doc.data().list)) {
-            selectedList = [];
-            renderRows();
-            renderRapor();
-            return;
-          }
-          const data = doc.data();
-
-          selectedList = data.list.map(kayit => {
-            const eslesen = masterPersonnelList.find(p => p.sicil === kayit.sicil);
-            return {
-              id: eslesen ? eslesen.id : sonrakiGeciciId--,
-              sicil: kayit.sicil,
-              name: kayit.name,
-              phone: kayit.phone,
-              station: kayit.station,
-              wantsTaxi: !!kayit.wantsTaxi
-            };
-          });
-
-          renderRows();
-          renderRapor();
-        })
-        .catch((err) => {
-          console.error("Seçili tarihin listesi yüklenemedi:", err.message);
-        });
-    }
-
-    function normalizeStr(str) {
-      return str.replace(/İ/g, "i").replace(/I/g, "ı").toLowerCase();
-    }
-
-    // Sekme Değiştirme
-    function switchTab(event, tabId) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      
-      event.target.classList.add('active');
-      document.getElementById(tabId).classList.add('active');
-
-      if (tabId === 'tabTaksiRapor' || tabId === 'tabTumMesaiciler') renderRapor();
-    }
-
-    // Autocomplete Arama
-    const searchInput = document.getElementById("searchInput");
-    const suggestions = document.getElementById("suggestions");
-
-    searchInput.addEventListener("input", function() {
-      const query = normalizeStr(this.value.trim());
-      suggestions.innerHTML = "";
-
-      if (!query) { suggestions.style.display = "none"; return; }
-
-      const filtered = masterPersonnelList.filter(p => 
-        (normalizeStr(p.name).includes(query) || p.sicil.includes(query)) && 
-        !selectedList.some(s => s.id === p.id)
-      );
-
-      if (filtered.length === 0) { suggestions.style.display = "none"; return; }
-
-      filtered.forEach(person => {
-        const item = document.createElement("div");
-        item.className = "suggestion-item";
-        item.innerHTML = `<div><b>${person.name} (${person.sicil})</b> <small style="color:#94a3b8">(${person.station})</small></div>`;
-        item.onclick = () => {
-          searchInput.value = "";
-          suggestions.style.display = "none";
-          openTaxiChoiceModal(person);
-        };
-        suggestions.appendChild(item);
-      });
-
-      suggestions.style.display = "block";
-    });
-
-    let pendingTaxiPerson = null;
-
-    function openTaxiChoiceModal(person) {
-      pendingTaxiPerson = person;
-      document.getElementById("taxiChoiceName").innerText = `${person.name} (${person.sicil})`;
-      document.getElementById("taxiChoiceModal").classList.add("open");
-    }
-
-    function confirmTaxiChoice(wantsTaxi) {
-      if (!pendingTaxiPerson) return;
-      selectedList.push({ ...pendingTaxiPerson, wantsTaxi });
-      pendingTaxiPerson = null;
-      closeModal("taxiChoiceModal");
-      renderRows();
-    }
-
-    function toggleTaxi(id) {
-      const p = selectedList.find(x => x.id === id);
-      if (p) {
-        p.wantsTaxi = !p.wantsTaxi;
-        renderRows();
-        const btn = document.querySelector(`[data-taxi-id="${id}"]`);
-        if (btn) {
-          btn.classList.add('pop');
-          setTimeout(() => btn.classList.remove('pop'), 500);
-        }
-        persistToFirestore();
-      }
-    }
-
-    // Modern Silme Uyarı Modalı Tetikleyici
-    function promptDelete(id) {
-      const p = selectedList.find(x => x.id === id);
-      if (!p) return;
-      document.getElementById("deletePersonId").value = id;
-      document.getElementById("deleteConfirmText").innerText = `"${p.name}" (${p.sicil}) isimli personeli listeden silmek istediğinize emin misiniz?`;
-      document.getElementById("deleteModal").classList.add("open");
-    }
-
-    function confirmDelete() {
-      const id = parseInt(document.getElementById("deletePersonId").value);
-      selectedList = selectedList.filter(x => x.id !== id);
-      closeModal('deleteModal');
-      renderRows();
-      renderRapor();
-      // Silme işlemini anında veritabanına da kaydet ki sayfa yenilenince geri gelmesin
-      persistToFirestore(null, (err) => {
-        alert("Silme, veritabanına kaydedilemedi: " + err.message);
-      });
-    }
-
-    // Satır Bazlı Liste Çizimi
-    function renderRows() {
-      const container = document.getElementById("rowsContainer");
-      container.innerHTML = "";
-
-      selectedList.forEach(p => {
-        const row = document.createElement("div");
-        row.className = "person-row";
-
-        const taxiClass = p.wantsTaxi ? "wants-taxi" : "no-taxi";
-        const taxiText = p.wantsTaxi ? "TAKSİ VAR" : "TAKSİ YOK";
-
-        row.innerHTML = `
-          <div class="person-info">
-            <span class="person-name">${p.name} (${p.sicil})</span>
-            <span class="person-sub">📍 ${p.station} | 📞 ${p.phone}</span>
-          </div>
-          <button class="taxi-btn-sm ${taxiClass}" data-taxi-id="${p.id}" onclick="toggleTaxi(${p.id})">${taxiText}</button>
-          <div class="row-actions">
-            <button class="btn-icon" onclick="openEditModal(${p.id})">✏️</button>
-            <button class="btn-icon del" onclick="promptDelete(${p.id})">🗑️</button>
-          </div>
-        `;
-        container.appendChild(row);
-      });
-
-      updateStats();
-    }
-
-    // Modal İşlemleri
-    function openEditModal(id) {
-      const p = selectedList.find(x => x.id === id);
-      if (!p) return;
-      document.getElementById("editPersonId").value = p.id;
-      document.getElementById("editSicil").value = p.sicil;
-      document.getElementById("editName").value = p.name;
-      document.getElementById("editPhone").value = p.phone;
-      document.getElementById("editStation").value = p.station;
-      document.getElementById("editModal").classList.add("open");
-    }
-
-    function closeModal(modalId) {
-      document.getElementById(modalId).classList.remove("open");
-    }
-
-    function saveModal() {
-      const id = parseInt(document.getElementById("editPersonId").value);
-      const p = selectedList.find(x => x.id === id);
-      if (p) {
-        p.sicil = document.getElementById("editSicil").value.trim();
-        p.name = document.getElementById("editName").value.trim();
-        p.phone = document.getElementById("editPhone").value.trim();
-        p.station = document.getElementById("editStation").value.trim();
-        renderRows();
-        renderRapor();
-        persistToFirestore();
-      }
-      closeModal('editModal');
-    }
-
-    function updateStats() {
-      document.getElementById("lblTotal").innerText = selectedList.length;
-      document.getElementById("lblTaxi").innerText = selectedList.filter(x => x.wantsTaxi).length;
-    }
-
-    // Rapor Sekmelerini Doldurma
-    function renderRapor() {
-      const [yy, mm, gg] = seciliTarih().split("-");
-      const dateStr = `${gg}.${mm}.${yy}`;
-      document.getElementById("pdfDate").innerText = dateStr;
-      document.getElementById("pdfDateAll").innerText = dateStr;
-      document.getElementById("pdfDateScreen").innerText = dateStr;
-      
-      const taxiList = selectedList.filter(x => x.wantsTaxi);
-      document.getElementById("pdfTaxiCount").innerText = taxiList.length;
-      document.getElementById("pdfTaxiCountScreen").innerText = taxiList.length;
-      document.getElementById("pdfTotalCount").innerText = selectedList.length;
-
-      // Tablo 1: Sadece Taksi İsteyenler (PDF için — DEĞİŞTİRİLMEDİ)
-      const taxiTbody = document.getElementById("pdfTaxiTable");
-      taxiTbody.innerHTML = taxiList.length === 0 ? "<tr><td colspan='5' style='text-align:center; color:#9aa0b4;'>Taksi isteyen personel yok.</td></tr>" : "";
-      taxiList.forEach((p, idx) => {
-      taxiTbody.innerHTML += `<tr onclick="openEditModal(${p.id})"><td class="col-no">${idx + 1}</td><td>${p.name} (${p.sicil})</td><td>${p.phone}</td><td class="col-adres">${p.station}</td><td class="col-del" onclick="event.stopPropagation(); promptDelete(${p.id})" title="Sil">🗑️</td></tr>`;
-      });
-
-      // Ekranda görünen kart listesi: sadece S.No, Ad Soyad, Tel No
-      const taxiCardTable = document.getElementById("taxiCardTable");
-      taxiCardTable.innerHTML = taxiList.length === 0 ? "<div class='pdf-row-empty'>Taksi isteyen personel yok.</div>" : "";
-      taxiList.forEach((p, idx) => {
-        taxiCardTable.innerHTML += `<div class="pdf-row" onclick="openEditModal(${p.id})"><span class="c-idx">${idx + 1}</span><span class="c-name">${p.name} (${p.sicil})</span><span class="c-phone">${p.phone}</span></div>`;
-      });
-
-      // Tablo 2: Tüm Mesaiciler
-      const allTbody = document.getElementById("pdfAllTable");
-      allTbody.innerHTML = selectedList.length === 0 ? "<div class='pdf-row-empty'>Mesaici yok.</div>" : "";
-      selectedList.forEach((p, idx) => {
-        const badge = p.wantsTaxi ? `<span class="status-badge taxi-yes">Taksi Var</span>` : `<span class="status-badge taxi-no">Taksi Yok</span>`;
-        allTbody.innerHTML += `<div class="pdf-row"><span class="c-idx">${idx + 1}</span><span class="c-name">${p.name} (${p.sicil})</span><span class="c-status">${badge}</span></div>`;
-      });
-    }
-
-    document.addEventListener("click", e => {
-      if (!e.target.closest(".search-container")) suggestions.style.display = "none";
-      if (!e.target.closest(".date-picker-bar")) takvimKapat();
-    });
-
-    // Sayfa açılır açılmaz bugünün tarihini göster ve kaydı yükle
-    tarihGosterimiGuncelle();
-    seciliTarihiYukle();
   </script>
 </body>
 </html>
