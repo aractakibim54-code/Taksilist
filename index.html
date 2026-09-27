@@ -599,6 +599,36 @@
         });
     }
 
+    // Sayfa açılışında bugünün kaydı varsa Firestore'dan çekip listeyi doldurur
+    let sonrakiGeciciId = -1;
+    function bugununListesiniYukle() {
+      const docId = bugununTarihi();
+      db.collection("mesailer").doc(docId).get()
+        .then((doc) => {
+          if (!doc.exists) return;
+          const data = doc.data();
+          if (!data.list || !Array.isArray(data.list)) return;
+
+          selectedList = data.list.map(kayit => {
+            const eslesen = masterPersonnelList.find(p => p.sicil === kayit.sicil);
+            return {
+              id: eslesen ? eslesen.id : sonrakiGeciciId--,
+              sicil: kayit.sicil,
+              name: kayit.name,
+              phone: kayit.phone,
+              station: kayit.station,
+              wantsTaxi: !!kayit.wantsTaxi
+            };
+          });
+
+          renderRows();
+          renderRapor();
+        })
+        .catch((err) => {
+          console.error("Bugünkü liste yüklenemedi:", err.message);
+        });
+    }
+
     function normalizeStr(str) {
       return str.replace(/İ/g, "i").replace(/I/g, "ı").toLowerCase();
     }
@@ -816,6 +846,9 @@
     document.addEventListener("click", e => {
       if (!e.target.closest(".search-container")) suggestions.style.display = "none";
     });
+
+    // Sayfa açılır açılmaz bugünün kaydını yükle
+    bugununListesiniYukle();
   </script>
 </body>
 </html>
