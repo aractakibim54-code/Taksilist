@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Ön Ambar Mesai Çıkış Paneli</title>
-  <!-- PDF Oluşturma Kütüphanesi -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <!-- Firebase (Firestore) Kütüphaneleri -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -83,6 +81,98 @@
     @keyframes modalIn { from { opacity: 0; transform: scale(.92) translateY(16px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
     .app-shell { max-width: 480px; margin: 0 auto; position: relative; }
+
+    /* Tarih Seçici Barı */
+    .date-picker-bar {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 14px; position: relative;
+    }
+    .date-nav-btn {
+      flex-shrink: 0; width: 42px; height: 42px;
+      background: var(--glass);
+      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--glass-border); border-radius: var(--r-pill);
+      color: var(--gold-bright); font-size: 1.3rem; font-weight: 800;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(255,255,255,.08);
+      transition: transform .15s ease, border-color .2s ease;
+    }
+    .date-nav-btn:active { transform: scale(.92); border-color: rgba(251,191,36,.5); }
+    .date-picker-field {
+      flex: 1; display: flex; align-items: center; gap: 8px;
+      background: var(--glass);
+      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--glass-border); border-radius: var(--r-pill);
+      padding: 12px 16px; cursor: pointer; user-select: none;
+      box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(255,255,255,.08);
+      transition: border-color .2s ease;
+    }
+    .date-picker-field.open { border-color: rgba(251,191,36,.55); box-shadow: 0 0 0 4px rgba(251,191,36,.15), var(--shadow-deep); }
+    .date-picker-icon { font-size: 1rem; flex-shrink: 0; }
+    .date-picker-text {
+      flex: 1; color: var(--text-main); font-family: 'Sora', 'Manrope', sans-serif;
+      font-weight: 700; font-size: 0.95rem; letter-spacing: .2px;
+    }
+    .date-picker-caret { color: var(--text-muted); font-size: 0.7rem; transition: transform .25s ease; }
+    .date-picker-field.open .date-picker-caret { transform: rotate(180deg); color: var(--gold-bright); }
+
+    /* Özel Takvim Paneli */
+    .takvim-panel {
+      position: absolute; top: calc(100% + 8px); left: 0; right: 0;
+      background: rgba(12,15,28,.92);
+      backdrop-filter: blur(28px) saturate(160%); -webkit-backdrop-filter: blur(28px) saturate(160%);
+      border: 1px solid var(--glass-border-strong); border-radius: var(--r-lg);
+      box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(255,255,255,.08);
+      padding: 14px; z-index: 200;
+      display: none; animation: fadeUp .2s ease;
+    }
+    .takvim-panel.open { display: block; }
+    .takvim-header { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+    .takvim-ok {
+      flex-shrink: 0; width: 32px; height: 32px; border: none; border-radius: var(--r-pill);
+      background: var(--glass); color: var(--gold-bright); font-size: 1.1rem; font-weight: 800;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--glass-border); transition: transform .15s ease;
+    }
+    .takvim-ok:active { transform: scale(.9); }
+    .takvim-secimler { flex: 1; display: flex; gap: 6px; }
+    .takvim-secimler select {
+      flex: 1; background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: var(--r-sm); color: var(--text-main); font-family: 'Sora', 'Manrope', sans-serif;
+      font-weight: 700; font-size: 0.85rem; padding: 7px 4px; text-align: center;
+      outline: none; -webkit-appearance: none; appearance: none; color-scheme: dark;
+    }
+    .takvim-gunler-header {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+      margin-bottom: 4px;
+    }
+    .takvim-gunler-header span {
+      text-align: center; font-size: 0.7rem; font-weight: 700;
+      color: var(--text-muted); padding: 4px 0;
+    }
+    .takvim-gunler-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .takvim-gun {
+      aspect-ratio: 1; border: none; background: none; border-radius: var(--r-sm);
+      color: var(--text-main); font-size: 0.82rem; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s ease, transform .1s ease;
+    }
+    .takvim-gun:active { transform: scale(.9); }
+    .takvim-gun.bos { visibility: hidden; cursor: default; }
+    .takvim-gun.bugun { border: 1px solid rgba(251,191,36,.55); color: var(--gold-bright); }
+    .takvim-gun.secili {
+      background: linear-gradient(135deg, var(--gold-deep), var(--gold-bright));
+      color: var(--text-on-gold); font-weight: 800;
+      box-shadow: 0 0 14px rgba(251,191,36,.45);
+    }
+    .takvim-gun:not(.secili):not(.bos):hover { background: rgba(255,255,255,.08); }
+    .takvim-bugun-btn {
+      width: 100%; margin-top: 12px; padding: 9px; border: none; border-radius: var(--r-pill);
+      background: var(--glass); border: 1px solid var(--glass-border);
+      color: var(--gold-bright); font-weight: 700; font-size: 0.8rem; cursor: pointer;
+    }
+    .takvim-bugun-btn:active { transform: scale(.97); }
+
 
     /* Navigation Tabs — iOS style pill segmented control */
     .nav-tabs {
@@ -367,6 +457,33 @@
 
   <div class="app-shell">
 
+  <!-- Tarih Seçici -->
+  <div class="date-picker-bar">
+    <button class="date-nav-btn" onclick="tarihiKaydir(-1)" aria-label="Önceki gün">‹</button>
+    <div class="date-picker-field" id="tarihAlani" onclick="takvimAcKapa(event)">
+      <span class="date-picker-icon">📅</span>
+      <span class="date-picker-text" id="tarihGosterim"></span>
+      <span class="date-picker-caret">▾</span>
+    </div>
+    <button class="date-nav-btn" onclick="tarihiKaydir(1)" aria-label="Sonraki gün">›</button>
+
+    <div class="takvim-panel" id="takvimPanel">
+      <div class="takvim-header">
+        <button class="takvim-ok" type="button" onclick="takvimAyDegistir(-1)" aria-label="Önceki ay">‹</button>
+        <div class="takvim-secimler">
+          <select id="takvimAySec" onchange="takvimSecimDegisti()"></select>
+          <select id="takvimYilSec" onchange="takvimSecimDegisti()"></select>
+        </div>
+        <button class="takvim-ok" type="button" onclick="takvimAyDegistir(1)" aria-label="Sonraki ay">›</button>
+      </div>
+      <div class="takvim-gunler-header">
+        <span>Pt</span><span>Sa</span><span>Ça</span><span>Pe</span><span>Cu</span><span>Ct</span><span>Pz</span>
+      </div>
+      <div class="takvim-gunler-grid" id="takvimGunlerGrid"></div>
+      <button class="takvim-bugun-btn" type="button" onclick="takvimBugunSec()">Bugüne Git</button>
+    </div>
+  </div>
+
   <!-- Sekme Butonları -->
   <div class="nav-tabs">
     <button class="tab-btn active" onclick="switchTab(event, 'tabSaha')">Taksi Ekleme Listesi</button>
@@ -521,7 +638,6 @@
       Mesaici: <b id="lblTotal">0</b> | Taksi: <strong id="lblTaxi" style="color: var(--accent-yellow);">0</strong>
     </div>
     <button class="pdf-dl-btn" id="btnKaydet" onclick="mesaileriKaydet()">💾 Kaydet</button>
-    <button class="pdf-dl-btn" onclick="downloadPDF()" style="display:none;">📄 PDF İndir</button>
   </div>
 
   </div><!-- /.app-shell -->
@@ -562,6 +678,149 @@
       return `${y}-${m}-${g}`;
     }
 
+    const AY_ADLARI = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+    const GUN_ADLARI = ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
+
+    let seciliTarihDegeri = bugununTarihi();
+    let takvimGorunenYil, takvimGorunenAy; // panelde gösterilen ay (0-11)
+
+    // Şu an seçili günü "YYYY-MM-DD" olarak döner
+    function seciliTarih() {
+      return seciliTarihDegeri;
+    }
+
+    // Üst çubuktaki metni ("27 Eylül 2026, Pazar") günceller
+    function tarihGosterimiGuncelle() {
+      const [y, m, g] = seciliTarihDegeri.split("-").map(Number);
+      const d = new Date(y, m - 1, g);
+      document.getElementById("tarihGosterim").innerText =
+        `${g} ${AY_ADLARI[m - 1]} ${y}, ${GUN_ADLARI[d.getDay()]}`;
+    }
+
+    // İleri/geri ok butonları ile günü ±1 kaydırır
+    function tarihiKaydir(fark) {
+      const [y, m, g] = seciliTarihDegeri.split("-").map(Number);
+      const d = new Date(y, m - 1, g);
+      d.setDate(d.getDate() + fark);
+      seciliTarihDegeri = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+      tarihGosterimiGuncelle();
+      tarihDegisti();
+    }
+
+    // Tarih değişince o güne ait kaydı yükler (yoksa listeyi temizler)
+    function tarihDegisti() {
+      seciliTarihiYukle();
+    }
+
+    // Takvim panelini açar/kapatır
+    function takvimAcKapa(e) {
+      if (e) e.stopPropagation();
+      const panel = document.getElementById("takvimPanel");
+      const alan = document.getElementById("tarihAlani");
+      const aciliyor = !panel.classList.contains("open");
+      if (aciliyor) {
+        const [y, m] = seciliTarihDegeri.split("-").map(Number);
+        takvimGorunenYil = y;
+        takvimGorunenAy = m - 1;
+        takvimSecimleriDoldur();
+        takvimCiz();
+        panel.classList.add("open");
+        alan.classList.add("open");
+      } else {
+        takvimKapat();
+      }
+    }
+
+    function takvimKapat() {
+      document.getElementById("takvimPanel").classList.remove("open");
+      document.getElementById("tarihAlani").classList.remove("open");
+    }
+
+    // Ay/Yıl dropdown'larını doldurur (ilk açılışta)
+    function takvimSecimleriDoldur() {
+      const aySec = document.getElementById("takvimAySec");
+      const yilSec = document.getElementById("takvimYilSec");
+
+      if (aySec.options.length === 0) {
+        AY_ADLARI.forEach((ad, idx) => {
+          const opt = document.createElement("option");
+          opt.value = idx;
+          opt.innerText = ad;
+          aySec.appendChild(opt);
+        });
+      }
+      if (yilSec.options.length === 0) {
+        const simdikiYil = new Date().getFullYear();
+        for (let y = simdikiYil - 3; y <= simdikiYil + 3; y++) {
+          const opt = document.createElement("option");
+          opt.value = y;
+          opt.innerText = y;
+          yilSec.appendChild(opt);
+        }
+      }
+      aySec.value = takvimGorunenAy;
+      yilSec.value = takvimGorunenYil;
+    }
+
+    // Panelde bir önceki/sonraki aya geçer
+    function takvimAyDegistir(fark) {
+      takvimGorunenAy += fark;
+      if (takvimGorunenAy < 0) { takvimGorunenAy = 11; takvimGorunenYil--; }
+      if (takvimGorunenAy > 11) { takvimGorunenAy = 0; takvimGorunenYil++; }
+      document.getElementById("takvimAySec").value = takvimGorunenAy;
+      document.getElementById("takvimYilSec").value = takvimGorunenYil;
+      takvimCiz();
+    }
+
+    // Ay/Yıl dropdown'larından biri değişince
+    function takvimSecimDegisti() {
+      takvimGorunenAy = parseInt(document.getElementById("takvimAySec").value, 10);
+      takvimGorunenYil = parseInt(document.getElementById("takvimYilSec").value, 10);
+      takvimCiz();
+    }
+
+    // Gün ızgarasını çizer
+    function takvimCiz() {
+      const grid = document.getElementById("takvimGunlerGrid");
+      grid.innerHTML = "";
+
+      const ilkGun = new Date(takvimGorunenYil, takvimGorunenAy, 1);
+      const ayinGunSayisi = new Date(takvimGorunenYil, takvimGorunenAy + 1, 0).getDate();
+      const bosHucre = (ilkGun.getDay() + 6) % 7; // Pazartesi = 0 olacak şekilde kaydır
+
+      for (let i = 0; i < bosHucre; i++) {
+        const bos = document.createElement("div");
+        bos.className = "takvim-gun bos";
+        grid.appendChild(bos);
+      }
+
+      const bugun = bugununTarihi();
+      for (let gun = 1; gun <= ayinGunSayisi; gun++) {
+        const tarihStr = `${takvimGorunenYil}-${String(takvimGorunenAy+1).padStart(2,"0")}-${String(gun).padStart(2,"0")}`;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "takvim-gun";
+        if (tarihStr === bugun) btn.classList.add("bugun");
+        if (tarihStr === seciliTarihDegeri) btn.classList.add("secili");
+        btn.innerText = gun;
+        btn.onclick = () => takvimGunSec(tarihStr);
+        grid.appendChild(btn);
+      }
+    }
+
+    // Bir güne tıklanınca
+    function takvimGunSec(tarihStr) {
+      seciliTarihDegeri = tarihStr;
+      tarihGosterimiGuncelle();
+      takvimKapat();
+      tarihDegisti();
+    }
+
+    // "Bugüne Git" butonu
+    function takvimBugunSec() {
+      takvimGunSec(bugununTarihi());
+    }
+
     function mesaileriKaydet() {
       if (selectedList.length === 0) {
         alert("Kaydedilecek personel yok.");
@@ -573,7 +832,7 @@
       btn.disabled = true;
       btn.innerText = "Kaydediliyor...";
 
-      const docId = bugununTarihi();
+      const docId = seciliTarih();
       const kayitData = {
         list: selectedList.map(p => ({
           sicil: p.sicil,
@@ -599,15 +858,19 @@
         });
     }
 
-    // Sayfa açılışında bugünün kaydı varsa Firestore'dan çekip listeyi doldurur
+    // Tarih seçicideki günün Firestore kaydı varsa çekip listeyi doldurur, yoksa listeyi boşaltır
     let sonrakiGeciciId = -1;
-    function bugununListesiniYukle() {
-      const docId = bugununTarihi();
+    function seciliTarihiYukle() {
+      const docId = seciliTarih();
       db.collection("mesailer").doc(docId).get()
         .then((doc) => {
-          if (!doc.exists) return;
+          if (!doc.exists || !doc.data().list || !Array.isArray(doc.data().list)) {
+            selectedList = [];
+            renderRows();
+            renderRapor();
+            return;
+          }
           const data = doc.data();
-          if (!data.list || !Array.isArray(data.list)) return;
 
           selectedList = data.list.map(kayit => {
             const eslesen = masterPersonnelList.find(p => p.sicil === kayit.sicil);
@@ -625,7 +888,7 @@
           renderRapor();
         })
         .catch((err) => {
-          console.error("Bugünkü liste yüklenemedi:", err.message);
+          console.error("Seçili tarihin listesi yüklenemedi:", err.message);
         });
     }
 
@@ -640,9 +903,6 @@
       
       event.target.classList.add('active');
       document.getElementById(tabId).classList.add('active');
-
-      const pdfBtn = document.querySelector('.pdf-dl-btn');
-      if (pdfBtn) pdfBtn.style.display = (tabId === 'tabTaksiRapor') ? 'inline-flex' : 'none';
 
       if (tabId === 'tabTaksiRapor' || tabId === 'tabTumMesaiciler') renderRapor();
     }
@@ -791,7 +1051,8 @@
 
     // Rapor Sekmelerini Doldurma
     function renderRapor() {
-      const dateStr = new Date().toLocaleDateString('tr-TR');
+      const [yy, mm, gg] = seciliTarih().split("-");
+      const dateStr = `${gg}.${mm}.${yy}`;
       document.getElementById("pdfDate").innerText = dateStr;
       document.getElementById("pdfDateAll").innerText = dateStr;
       document.getElementById("pdfDateScreen").innerText = dateStr;
@@ -824,31 +1085,14 @@
       });
     }
 
-    // PDF İndirme Fonksiyonu
-    function downloadPDF() {
-      renderRapor();
-      const element = document.getElementById('pdfContent');
-      element.classList.remove('pdf-hidden-for-screen');
-      element.classList.add('exporting');
-      const opt = {
-        margin:       10,
-        filename:     `On_Ambar_Mesai_Cikis_Listesi_${new Date().toISOString().slice(0,10)}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-      html2pdf().set(opt).from(element).save().then(() => {
-        element.classList.remove('exporting');
-        element.classList.add('pdf-hidden-for-screen');
-      });
-    }
-
     document.addEventListener("click", e => {
       if (!e.target.closest(".search-container")) suggestions.style.display = "none";
+      if (!e.target.closest(".date-picker-bar")) takvimKapat();
     });
 
-    // Sayfa açılır açılmaz bugünün kaydını yükle
-    bugununListesiniYukle();
+    // Sayfa açılır açılmaz bugünün tarihini göster ve kaydı yükle
+    tarihGosterimiGuncelle();
+    seciliTarihiYukle();
   </script>
 </body>
 </html>
