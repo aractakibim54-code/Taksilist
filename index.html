@@ -84,14 +84,14 @@
 
     /* Vardiya Üst Barı */
     .vardiya-bar {
-      display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
     }
     .home-btn {
-      flex-shrink: 0; width: 42px; height: 42px;
+      flex-shrink: 0; width: 34px; height: 34px;
       background: var(--glass);
       backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
       border: 1px solid var(--glass-border); border-radius: var(--r-pill);
-      color: var(--gold-bright); font-size: 1.15rem;
+      color: var(--gold-bright); font-size: 0.95rem;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
       box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(255,255,255,.08);
       transition: transform .15s ease;
@@ -102,25 +102,25 @@
       flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
       background: linear-gradient(135deg, rgba(251,191,36,.16), rgba(251,191,36,.05));
       border: 1px solid var(--glass-border-strong); border-radius: var(--r-pill);
-      padding: 11px 14px; box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(255,255,255,.08);
+      padding: 7px 12px; box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(255,255,255,.08);
     }
-    .vardiya-rozet .ikon { font-size: 1rem; }
+    .vardiya-rozet .ikon { font-size: 0.85rem; }
     .vardiya-rozet .metin {
-      font-family: 'Sora', 'Manrope', sans-serif; font-weight: 800; font-size: 0.92rem;
-      color: var(--gold-bright); letter-spacing: .2px;
+      font-family: 'Sora', 'Manrope', sans-serif; font-weight: 800; font-size: 0.72rem; line-height: 1.25; text-align: center;
+      color: var(--gold-bright); letter-spacing: .1px;
     }
 
     /* Tarih Seçici Barı */
     .date-picker-bar {
-      display: flex; align-items: center; gap: 8px;
-      margin-bottom: 14px; position: relative;
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 10px; position: relative;
     }
     .date-nav-btn {
-      flex-shrink: 0; width: 42px; height: 42px;
+      flex-shrink: 0; width: 34px; height: 34px;
       background: var(--glass);
       backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
       border: 1px solid var(--glass-border); border-radius: var(--r-pill);
-      color: var(--gold-bright); font-size: 1.3rem; font-weight: 800;
+      color: var(--gold-bright); font-size: 1.1rem; font-weight: 800;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
       box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(255,255,255,.08);
       transition: transform .15s ease, border-color .2s ease;
@@ -131,15 +131,15 @@
       background: var(--glass);
       backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
       border: 1px solid var(--glass-border); border-radius: var(--r-pill);
-      padding: 12px 16px; cursor: pointer; user-select: none;
+      padding: 7px 12px; cursor: pointer; user-select: none;
       box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(255,255,255,.08);
       transition: border-color .2s ease;
     }
     .date-picker-field.open { border-color: rgba(251,191,36,.55); box-shadow: 0 0 0 4px rgba(251,191,36,.15), var(--shadow-deep); }
-    .date-picker-icon { font-size: 1rem; flex-shrink: 0; }
+    .date-picker-icon { font-size: 0.85rem; flex-shrink: 0; }
     .date-picker-text {
       flex: 1; color: var(--text-main); font-family: 'Sora', 'Manrope', sans-serif;
-      font-weight: 700; font-size: 0.95rem; letter-spacing: .2px;
+      font-weight: 700; font-size: 0.8rem; letter-spacing: .1px;
     }
     .date-picker-caret { color: var(--text-muted); font-size: 0.7rem; transition: transform .25s ease; }
     .date-picker-field.open .date-picker-caret { transform: rotate(180deg); color: var(--gold-bright); }
@@ -878,7 +878,7 @@
     const GUN_ADLARI = ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
 
     // Açılış sayfasından gelen vardiya bilgisi (?vardiya=08-16 veya 16-00). Yoksa 08-16 varsayılan.
-    const VARDIYA_ETIKETLERI = { "08-16": "08:00 – 16:00 Vardiyası", "16-00": "16:00 – 00:00 Vardiyası" };
+    const VARDIYA_ETIKETLERI = { "08-16": "08:00 – 16:00 Taksi Mesai Listesi Hazırlanıyor", "16-00": "16:00 – 00:00 Taksi Mesai Listesi Hazırlanıyor" };
     let aktifVardiya = "08-16";
 
     // Firestore'da her gün + vardiya kombinasyonu ayrı bir belge olarak tutulur (örn. 2026-09-27_08-16)
