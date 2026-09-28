@@ -645,7 +645,6 @@
   <div class="vardiya-bar">
     <a class="home-btn" href="#" aria-label="Ana sayfaya dön">🏠</a>
     <div class="vardiya-rozet">
-      <span class="ikon">🚕</span>
       <span class="metin" id="vardiyaEtiket"></span>
     </div>
   </div>
@@ -663,9 +662,14 @@
     <div class="takvim-panel" id="takvimPanel">
       <div class="takvim-header">
         <button class="takvim-ok" type="button" onclick="takvimNav(-1)" aria-label="Geri">‹</button>
-        <button class="takvim-baslik" type="button" id="takvimBaslik" onclick="takvimBaslikTikla()">
-          <span id="takvimBaslikMetin"></span><span class="karet">▾</span>
-        </button>
+        <div class="takvim-secimler">
+          <button class="takvim-baslik" type="button" id="takvimAyBtn" onclick="takvimModAyarla(takvimMod === 'ay' ? 'gun' : 'ay')">
+            <span id="takvimAyMetin"></span><span class="karet">▾</span>
+          </button>
+          <button class="takvim-baslik" type="button" id="takvimYilBtn" onclick="takvimModAyarla(takvimMod === 'yil' ? 'gun' : 'yil')">
+            <span id="takvimYilMetin"></span><span class="karet">▾</span>
+          </button>
+        </div>
         <button class="takvim-ok" type="button" onclick="takvimNav(1)" aria-label="İleri">›</button>
       </div>
       <div class="takvim-gunler-header" id="takvimGunlerHeader">
@@ -943,47 +947,38 @@
       takvimMod = "gun";
     }
 
-    // Gün / ay / yıl görünümleri arasında geçiş yapar ve doğru ızgarayı çizer
+    // Görünümler: "gun" (gün ızgarası), "ay" (ay seçimi), "yil" (yıl seçimi)
+    // Ay ve Yıl butonları birbirinden bağımsız: her biri sadece kendi listesini açar/kapatır.
     function takvimModAyarla(mod) {
       takvimMod = mod;
       const gunlerHeader = document.getElementById("takvimGunlerHeader");
       const gunlerGrid = document.getElementById("takvimGunlerGrid");
       const aylarGrid = document.getElementById("takvimAylarGrid");
       const yillarGrid = document.getElementById("takvimYillarGrid");
-      const baslik = document.getElementById("takvimBaslik");
 
       gunlerHeader.style.display = mod === "gun" ? "grid" : "none";
       gunlerGrid.style.display = mod === "gun" ? "grid" : "none";
       aylarGrid.style.display = mod === "ay" ? "grid" : "none";
       yillarGrid.style.display = mod === "yil" ? "grid" : "none";
-      baslik.classList.toggle("zoom-out", mod !== "gun");
+      document.getElementById("takvimAyBtn").classList.toggle("zoom-out", mod === "ay");
+      document.getElementById("takvimYilBtn").classList.toggle("zoom-out", mod === "yil");
 
       if (mod === "gun") takvimCiz();
       else if (mod === "ay") takvimAylariCiz();
-      else takvimYillariCiz();
-
+      else {
+        takvimYilPenceresi = takvimGorunenYil - 5; // seçili yıl listede ortalarda görünsün
+        takvimYillariCiz();
+      }
       takvimBasligiGuncelle();
     }
 
-    // Üstteki başlığa tıklanınca bir üst seviyeye "zoom out" yapar (gün → ay → yıl)
-    function takvimBaslikTikla() {
-      if (takvimMod === "gun") takvimModAyarla("ay");
-      else if (takvimMod === "ay") {
-        takvimYilPenceresi = takvimGorunenYil - (takvimGorunenYil % 12);
-        takvimModAyarla("yil");
-      } else takvimModAyarla("gun");
-    }
-
-    // Başlık metnini güncelle: gün görünümünde "Eylül 2026", ay görünümünde "2026",
-    // yıl görünümünde ise sonsuz kaydırmayı yansıtan "2020 - 2031" gibi bir aralık
+    // Ay ve yıl butonlarının yazısını günceller ("Eylül" | "2026")
     function takvimBasligiGuncelle() {
-      const metin = document.getElementById("takvimBaslikMetin");
-      if (takvimMod === "gun") metin.innerText = `${AY_ADLARI[takvimGorunenAy]} ${takvimGorunenYil}`;
-      else if (takvimMod === "ay") metin.innerText = `${takvimGorunenYil}`;
-      else metin.innerText = `${takvimYilPenceresi} - ${takvimYilPenceresi + 11}`;
+      document.getElementById("takvimAyMetin").innerText = AY_ADLARI[takvimGorunenAy];
+      document.getElementById("takvimYilMetin").innerText = takvimGorunenYil;
     }
 
-    // Üstteki ‹ › okları: görünen moda göre gün, yıl ya da 12 yıllık blok kaydırır (sonsuz)
+    // ‹ › okları: gün görünümünde ±1 ay, ay görünümünde ±1 yıl, yıl görünümünde ±12 yıl
     function takvimNav(fark) {
       if (takvimMod === "gun") {
         takvimGorunenAy += fark;
@@ -1034,7 +1029,7 @@
         btn.innerText = y;
         btn.onclick = () => {
           takvimGorunenYil = y;
-          takvimModAyarla("ay");
+          takvimModAyarla("gun");
         };
         grid.appendChild(btn);
       }
@@ -1243,6 +1238,8 @@
       pendingTaxiPerson = null;
       closeModal("taxiChoiceModal");
       renderRows();
+      // Bir sonraki personeli hemen aramak için arama kutusuna odaklan (klavye açılır)
+      searchInput.focus();
     }
 
     function toggleTaxi(id) {
