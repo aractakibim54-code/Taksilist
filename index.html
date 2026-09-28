@@ -1097,6 +1097,8 @@
         savedAt: new Date().toISOString()
       };
 
+      yerelKaydet(docId, kayitData); // internet/kapanma olsa bile telefonda yedek dursun
+
       db.collection("mesailer").doc(docId).set(kayitData)
         .then(() => { if (onSuccess) onSuccess(); })
         .catch((err) => { if (onError) onError(err); else console.error("Kaydetme hatası:", err.message); });
@@ -1128,35 +1130,54 @@
 
     // Tarih seçicideki günün Firestore kaydı varsa çekip listeyi doldurur, yoksa listeyi boşaltır
     let sonrakiGeciciId = -1;
+
+    // Telefondaki yerel yedek (localStorage) — erişilemezse sessizce yok sayılır
+    function yerelKaydet(docId, data) {
+      try { localStorage.setItem("mesai_" + docId, JSON.stringify(data)); } catch (e) {}
+    }
+    function yerelOku(docId) {
+      try {
+        const v = localStorage.getItem("mesai_" + docId);
+        return v ? JSON.parse(v) : null;
+      } catch (e) { return null; }
+    }
+
+    function listeyiUygula(data) {
+      if (!data || !Array.isArray(data.list)) { selectedList = []; }
+      else {
+        selectedList = data.list.map(kayit => {
+          const eslesen = masterPersonnelList.find(p => p.sicil === kayit.sicil);
+          return {
+            id: eslesen ? eslesen.id : sonrakiGeciciId--,
+            sicil: kayit.sicil,
+            name: kayit.name,
+            phone: kayit.phone,
+            station: kayit.station,
+            wantsTaxi: !!kayit.wantsTaxi
+          };
+        });
+      }
+      renderRows();
+      renderRapor();
+    }
+
     function seciliTarihiYukle() {
       const docId = firestoreDocId();
+      const yerel = yerelOku(docId);
       db.collection("mesailer").doc(docId).get()
         .then((doc) => {
-          if (!doc.exists || !doc.data().list || !Array.isArray(doc.data().list)) {
-            selectedList = [];
-            renderRows();
-            renderRapor();
-            return;
+          const sunucu = doc.exists ? doc.data() : null;
+          // İkisinden hangisi daha yeniyse onu göster (kayıt sunucuya ulaşamadıysa kaybolmasın)
+          if (yerel && (!sunucu || (yerel.savedAt || "") > (sunucu.savedAt || ""))) {
+            listeyiUygula(yerel);
+            persistToFirestore(); // yerel daha yeniyse sunucuya da gönder
+          } else {
+            listeyiUygula(sunucu);
           }
-          const data = doc.data();
-
-          selectedList = data.list.map(kayit => {
-            const eslesen = masterPersonnelList.find(p => p.sicil === kayit.sicil);
-            return {
-              id: eslesen ? eslesen.id : sonrakiGeciciId--,
-              sicil: kayit.sicil,
-              name: kayit.name,
-              phone: kayit.phone,
-              station: kayit.station,
-              wantsTaxi: !!kayit.wantsTaxi
-            };
-          });
-
-          renderRows();
-          renderRapor();
         })
         .catch((err) => {
           console.error("Seçili tarihin listesi yüklenemedi:", err.message);
+          if (yerel) listeyiUygula(yerel);
         });
     }
 
@@ -1238,6 +1259,7 @@
       pendingTaxiPerson = null;
       closeModal("taxiChoiceModal");
       renderRows();
+      persistToFirestore(); // ekleyince hemen kaydet: yenileme/kapatma listeyi silmesin
       // Bir sonraki personeli hemen aramak için arama kutusuna odaklan (klavye açılır)
       searchInput.focus();
     }
